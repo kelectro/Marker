@@ -1,5 +1,7 @@
+#!/usr/bin/python
+
 import cv2
-import numpy as np
+import numpy as np;
 
 im = cv2.imread('m1.jpg', cv2.IMREAD_GRAYSCALE)
 
