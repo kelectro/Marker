@@ -1,18 +1,21 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-
+import  glob
+import  sys
+'''
 orig = cv2.imread('/home/thanasis/Documents/eagles/Markers-eagles -20190213T183437Z-001/Markers-eagles /IMG_20190213_115706.jpg', 0)
 templ = cv2.imread('/home/thanasis/Documents/eagles/Markers-eagles -20190213T183437Z-001/Markers-eagles /IMG_20190213_115706(crop).jpg', 0)
 #gray = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY)
 #gray = np.float32(gray)
-'''
+
+#corner detection
 corners = cv2.goodFeaturesToTrack(gray, 1000, 0.1, 4)
 corners = np.int0(corners)
 for corner in corners:
     x, y = corner.ravel()
     cv2.circle(orig, (x, y), 3, 255, -1)
-'''
+#
 
 orb = cv2.ORB_create()
 
@@ -41,3 +44,15 @@ cv2.imshow('original', orig)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+'''
+
+filenames = glob.glob("/home/thanasis/Documents/eagles/Markers-eagles -20190213T183437Z-001/Markers-eagles /*.jpg")
+filenames.sort()
+images = [cv2.imread(img) for img in filenames]
+
+for img in images:
+    cv2.namedWindow("edges", cv2.WINDOW_NORMAL)
+    cv2.imshow("edges", img)
+    #print (img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
