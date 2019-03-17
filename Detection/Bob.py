@@ -24,10 +24,7 @@ while cap.isOpened():
     #cv2.imwrite("frame%d.jpg" % p, frame)
     #img= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     p=p+1
-    print('1st',p)
-
-
-
+    print('frame no.',p)
 
 # Simple blob detector
     params = cv2.SimpleBlobDetector_Params()
@@ -45,8 +42,6 @@ while cap.isOpened():
     params.filterByCircularity = False
     params.filterByConvexity = True
 
-
-
     params.filterByInertia = False
     # opencv version 4
     # for older version <3
@@ -56,13 +51,12 @@ while cap.isOpened():
 
     keypoints = detector.detect(frame)
 
+
     # Draw detected blobs as red circles.
     # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
     # the size of the circle corresponds to the size of blob
 
     im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]), (125,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-
     # Show blobs
     cv2.imshow("Keypoints", im_with_keypoints)
     print("p=",p)
@@ -70,6 +64,14 @@ while cap.isOpened():
     #cv2.waitKey(100)
     if key == ord("q"):
         break
+        #to extract more info about the blobs
+        #https://stackoverflow.com/questions/13534723/how-to-get-extra-information-of-blobs-with-simpleblobdetector
+        # for (std
+        # ::vector < cv::KeyPoint >::iterator blobIterator = myBlobs.begin(); blobIterator != myBlobs.end(); blobIterator++){
+        # std::
+        #     cout << "size of blob is: " << blobIterator->size << std::endl;
+        # std::cout << "point is at: " << blobIterator->pt.x << " " << blobIterator->pt.y << std::endl;
+        # }
 
-cap.release()
+    cap.release()
 cv2.destroyAllWindows()
