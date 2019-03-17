@@ -45,15 +45,12 @@ while cap.isOpened():
     params.filterByCircularity = False
     params.filterByConvexity = True
 
-
-
     params.filterByInertia = False
     # opencv version 4
     # for older version <3
     # use detector = cv2.SimpleBlobDetector(params)
 
     detector = cv2.SimpleBlobDetector_create(params)
-
     keypoints = detector.detect(frame)
 
     # Draw detected blobs as red circles.
@@ -63,11 +60,13 @@ while cap.isOpened():
     im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]), (125,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
 
+
+
     # Show blobs
     cv2.imshow("Keypoints", im_with_keypoints)
     print("p=",p)
 
-    cv2.waitKey(100)
+    cv2.waitKey(200)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
