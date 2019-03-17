@@ -66,9 +66,9 @@ while cap.isOpened():
     # Show blobs
     cv2.imshow("Keypoints", im_with_keypoints)
     print("p=",p)
-
-    cv2.waitKey(100)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    key = cv2.waitKey(50) & 0xFF
+    #cv2.waitKey(100)
+    if key == ord("q"):
         break
 
 cap.release()
