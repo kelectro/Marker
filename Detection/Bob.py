@@ -1,77 +1,155 @@
 import cv2
+import pytesseract
 import numpy as np
+#https://github.com/spmallick/learnopencv/blob/master/BlobDetector/blob.py
+from PIL import Image
+from matplotlib import pyplot as plt
+import multiprocessing as mp
+# g e a r g e...
+def f(x):
+    while 1:
+        pass  # infinite loop
+
+import multiprocessing as mp
+n_cores = mp.cpu_count()
+with mp.Pool(n_cores) as p:
+    p.map(f, range(n_cores))
+
+def image_rot(img):
+    rows,cols=img.shape
+    i=0
+    angle=0
+    for angle in range (0,360,90):
+        M=cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
+        dst = cv2.warpAffine(img,M,(cols,rows))
+        text=detect_test(dst)
+        if (text == "G") :
+            exit()
+        cv2.imshow("rot",dst)
+        print("text",text)
+        print("angle",angle)
+
+    
+
+def save_to_file(img):
+    d+=1
+    filename="/home/kiagkons/Documents/Eagles/Sdu_Eagles_Electronics/Detection/letters/im_%d.jpg"%d
+    cv2.imwrite(filename,sharpened)
+    print("done",d)
+
+def detect_test(img):
+    config = ('-l eng --oem 1 --psm 3')
+    text = pytesseract.image_to_string(img, config=config)
+    return text
 
 
-# img = cv2.imread('test.png', cv2.IMREAD_GRAYSCALE)
 width=640
 height=480
-# img=cv2.resize(img,(width,height))
-
-#im = cv2.GaussianBlur(img,(5,5),0)
-
 cap = cv2.VideoCapture('samplevideo.mp4')
 p=0
-#while True :
+print("1")
+# while True :
 while cap.isOpened():
     ret, frame = cap.read()
-    #frame=cv2.resize(frame, (640, 480), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
-    frame=cv2.resize(frame,(width,height))
+    frame=cv2.resize(frame, (width, height), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+    #frame=cv2.resize(frame,(width,height))
+    #image=frame.copy()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     cv2.imshow('frame',frame)
-    #to save the frame
-    #we can use it at the detection to keep save it
-    #cv2.imwrite("frame%d.jpg" % p, frame)
     #img= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     p=p+1
     print('frame no.',p)
 
-# Simple blob detector
+
+    # Simple blob detector
     params = cv2.SimpleBlobDetector_Params()
 
     # set threshold
+    #for 640*480 min 10 max 200
     params.minThreshold = 10
     params.maxThreshold = 200
 
     # Area filtering
+    #640*480 75,250
     params.filterByArea = True
-    params.minArea =75
+    params.minArea = 75
     params.maxArea = 250
 
-    # no circularity needed
-    params.filterByCircularity = False
+
+    params.filterByCircularity = True
+    params.minCircularity = 0.75
+
     params.filterByConvexity = True
-
     params.filterByInertia = False
-    # opencv version 4
-    # for older version <3
-    # use detector = cv2.SimpleBlobDetector(params)
-
     detector = cv2.SimpleBlobDetector_create(params)
-
     keypoints = detector.detect(frame)
-
 
     # Draw detected blobs as red circles.
     # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
     # the size of the circle corresponds to the size of blob
 
     im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]), (125,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    #print("test", keypoints)
     # Show blobs
+
     cv2.imshow("Keypoints", im_with_keypoints)
-    print("p=",p)
-    key = cv2.waitKey(50) & 0xFF
-    #cv2.waitKey(100)
+    print("frame no.=",p)
+    key = cv2.waitKey(25) & 0xFF
     if key == ord("q"):
         break
-        #to extract more info about the blobs
-        #https://stackoverflow.com/questions/13534723/how-to-get-extra-information-of-blobs-with-simpleblobdetector
-        # for (std
-        # ::vector < cv::KeyPoint >::iterator blobIterator = myBlobs.begin(); blobIterator != myBlobs.end(); blobIterator++){
-        # std::
-        #     cout << "size of blob is: " << blobIterator->size << std::endl;
-        # std::cout << "point is at: " << blobIterator->pt.x << " " << blobIterator->pt.y << std::endl;
-        # }
+    d=0
+    for k in keypoints:
+        d+=1
 
-    cap.release()
+        (x,y) = k.pt
+        x = int(round(x))
+        y = int(round(y))
+        s=k.size
+        s=int(round(s))
+        a=int(round(x+(s/2))+4)
+        b=int(round(y+(s/2))+4)
+        c = int(round(x - (s / 2))-2)
+        d = int(round(y - (s / 2))-2)
+        #rect1=x+4-s
+        #rect2=y+4-s
+        #rect3=int(round(2*s-8))
+        #rect4=int(round(2*s-8))
+        cv2.rectangle(frame,(a,b), (c,d), (0,0,0),3)
+        #cv2.imshow("with frame", frame)
+        #Mat cropedImage = fullImage(Rect(X,Y,Width,Height));
+        #crop_img=cv2.copyMakeBorder(frame,a,d,c,b, cv2.BORDER_REPLICATE)
+        crop_img = frame[int(y-7):int(y+7),int(x-7):int(x+7)]
+        crop_img = cv2.resize(crop_img, (30,30))
+        cv2.imshow("crop_img", crop_img)
+        # sharpening
+        kernel = np.array([[-1,-1,-1],[-1, 9,-1],[-1,-1,-1]])
+        sharpened = cv2.filter2D(crop_img, -1, kernel)        
+        cv2.imshow("sharpenned",sharpened)
+        # img blur
+        img = cv2.medianBlur(crop_img,3)
+        
+        ret,bina = cv2.threshold(img,150,255,cv2.THRESH_BINARY)        
+        th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+        cv2.THRESH_BINARY,11,2)
+
+        print("pornees")
+
+        cv2.imshow("binary", bina)
+        cv2.imshow("sharp", sharpened)
+        cv2.imshow("adaptive",th3)
+        
+        image_rot(crop_img)
+
+        # text = pytesseract.image_to_string(crop_img)
+        # #os.remove(filename)
+        # print("Text detected",text)
+
+        # show the output images
+        
+
+cap.release()
 cv2.destroyAllWindows()
+
+
