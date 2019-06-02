@@ -1,37 +1,78 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-#  detectcontour.py
-#  
-#  Copyright 2019 thanasis <thanasis@thanasis>
-#  
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#  
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#  
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#  MA 02110-1301, USA.
-#  
-#  
-
+import pytesseract
 import cv2
+from PIL import Image
 import numpy as np
 import matplotlib as plt
 import imutils
 
-cam = cv2.VideoCapture(0)
+
+
+
+
+def image_crop(c,frame):
+
+	rect = cv2.minAreaRect(c)
+	box = cv2.boxPoints(rect)
+
+	ext_left = tuple(c[c[:, :, 0].argmin()][0])
+	ext_right = tuple(c[c[:, :, 0].argmax()][0])
+	ext_top = tuple(c[c[:, :, 1].argmin()][0])
+	ext_bot = tuple(c[c[:, :, 1].argmax()][0])
+
+	# roi_corners = np.array([box], dtype=np.int32)
+
+	# cv2.polylines(frame, roi_corners, 1, (255, 0, 0), 3)
+	cropped_image = frame[ext_top[1]:ext_bot[1], ext_left[0]:ext_right[0]]
+	cv2.imshow('image', cropped_image)
+
+	
+
+
+def image_rot(img):
+    rows,cols=img.shape
+    i=0
+    angle=0
+    for angle in range (0,360,90):
+        M=cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
+        dst = cv2.warpAffine(img,M,(cols,rows))
+        text=detect_test(dst)
+        if (text == "G") :
+            exit()
+        cv2.imshow("rot",dst)
+        print("text",text)
+        #print("angle",angle)
+
+    
+
+def save_to_file(img):
+    d+=1
+    filename="/home/kiagkons/Documents/Eagles/Sdu_Eagles_Electronics/Detection/letters/im_%d.jpg"%d
+    cv2.imwrite(filename,sharpened)
+    print("done",d)
+
+def detect_test(img):
+    config = ('-l eng --oem 1 --psm 10')
+    text = pytesseract.image_to_string(img, config=config)
+    return text
+
+
+
+def crop(x,y,w,h,frame):
+	#crop_img = frame[int(y-100):int(y+100),int(x-100):int(x+100)]
+	crop_img=frame[y:y+h,x:x+w]
+
+	#crop_img = cv2.resize(crop_img, (50,50))
+	cv2.imshow("cropped",crop_img)
+	return crop_img
+    	
+cam = cv2.VideoCapture('file4.mp4')
+# cam = cv2.VideoCapture(0)
 # keep looping
 while True:
 	# grab the current frame and initialize the status text
 	(grabbed, frame) = cam.read()
+	frame = frame=cv2.resize(frame, (1080, 720), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
 	status = "No Targets"
 	
 	# convert the frame to grayscale, blur it, and detect edges
@@ -49,13 +90,14 @@ while True:
 		# approximate the contour
 		peri = cv2.arcLength(c, True)
 		approx = cv2.approxPolyDP(c, 0.01 * peri, True)
- 
+		# print (peri)
 		# ensure that the approximated contour is "roughly" rectangular
 		if len(approx) >= 4 and len(approx) <= 6:
 			# compute the bounding box of the approximated contour and
 			# use the bounding box to compute the aspect ratio
 			(x, y, w, h) = cv2.boundingRect(approx)
-			aspectRatio = w / float(h)
+			aspectRatio = w / float(h)		
+			
  
 			# compute the solidity of the original contour
 			area = cv2.contourArea(c)
@@ -64,9 +106,10 @@ while True:
  
 			# compute whether or not the width and height, solidity, and
 			# aspect ratio of the contour falls within appropriate bounds
-			keepDims = w > 25 and h > 25
+			keepDims = w >25 and h > 25
 			keepSolidity = solidity > 0.9
 			keepAspectRatio = aspectRatio >= 0.8 and aspectRatio <= 1.2
+			# print("aeraaaa",solidity)
  
 			# ensure that the contour passes all our tests
 			
@@ -75,23 +118,37 @@ while True:
 				# text
 				cv2.drawContours(frame, [approx], -1, (0, 0, 255), 4)
 				status = "Target(s) Acquired"
+
+				image_crop(approx,frame)		
+
  
 				# compute the center of the contour region and draw the
 				# crosshairs
 				M = cv2.moments(approx)
 				(cX, cY) = (int(M["m10"] // M["m00"]), int(M["m01"] // M["m00"]))
-				(startX, endX) = (int(cX - (w * 0.15)), int(cX + (w * 0.15)))
-				(startY, endY) = (int(cY - (h * 0.15)), int(cY + (h * 0.15)))
-				cv2.line(frame, (startX, cY), (endX, cY), (0, 0, 255), 3)
-				cv2.line(frame, (cX, startY), (cX, endY), (0, 0, 255), 3)
-				print (cX, cY)
+				# (startX, endX) = (int(cX - (w * 0.15)), int(cX + (w * 0.15)))
+				# (startY, endY) = (int(cY - (h * 0.15)), int(cY + (h * 0.15)))
+				#cv2.line(frame, (startX, cY), (endX, cY), (0, 0, 255), 3)
+				#cv2.line(frame, (cX, startY), (cX, endY), (0, 0, 255), 3)
+				
+
+				
+			
+				#frame=crop(x,y,w,h,frame)
+				#cv2.imshow("Crop",frame)
+				# frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+				# text=detect_test(frame)
+				# print("text is ",text)
+				
+				#image_rot(frame)
+
 					
-	# draw the status text on the frame
-	cv2.putText(frame, status, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-		(0, 0, 255), 2)
-	# show the frame and record if a key is pressed
-	cv2.imshow("Frame", frame)
-	key = cv2.waitKey(1) & 0xFF
+	# # draw the status text on the frame
+	# cv2.putText(frame, status, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+	# 	(0, 0, 255), 2)
+	# # show the frame and record if a key is pressed
+	#cv2.imshow("Frame", frame)
+	key = cv2.waitKey(50) & 0xFF
  
 	# if the 'q' key is pressed, stop the loop
 	if key == ord("q"):

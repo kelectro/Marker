@@ -44,7 +44,7 @@ def detect_test(img):
 
    
 
-frame=cv2.imread('g.jpg',0)
+frame=cv2.imread('test3.jpg',0)
 frame=cv2.resize(frame,(480,640))
 cv2.imshow("Before",frame)
 # Simple blob detector
