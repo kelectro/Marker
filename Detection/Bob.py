@@ -6,14 +6,15 @@ from PIL import Image
 from matplotlib import pyplot as plt
 import multiprocessing as mp
 # g e a r g e...
-def f(x):
-    while 1:
-        pass  # infinite loop
 
-import multiprocessing as mp
-n_cores = mp.cpu_count()
-with mp.Pool(n_cores) as p:
-    p.map(f, range(n_cores))
+# def f(x):
+#     while 1:
+#         pass  # infinite loop
+
+# import multiprocessing as mp
+# n_cores = mp.cpu_count()
+# with mp.Pool(n_cores) as p:
+#     p.map(f, range(n_cores))
 
 def image_rot(img):
     rows,cols=img.shape
@@ -27,7 +28,7 @@ def image_rot(img):
             exit()
         cv2.imshow("rot",dst)
         print("text",text)
-        print("angle",angle)
+        #print("angle",angle)
 
     
 
@@ -38,14 +39,14 @@ def save_to_file(img):
     print("done",d)
 
 def detect_test(img):
-    config = ('-l eng --oem 1 --psm 3')
+    config = ('-l eng --oem 1 --psm 10')
     text = pytesseract.image_to_string(img, config=config)
     return text
 
 
 width=640
 height=480
-cap = cv2.VideoCapture('samplevideo.mp4')
+cap = cv2.VideoCapture('file4.mp4')
 p=0
 print("1")
 # while True :
@@ -73,11 +74,11 @@ while cap.isOpened():
     # Area filtering
     #640*480 75,250
     params.filterByArea = True
-    params.minArea = 75
-    params.maxArea = 250
+    params.minArea = 100
+    params.maxArea = 500
 
 
-    params.filterByCircularity = True
+    params.filterByCircularity = False
     params.minCircularity = 0.75
 
     params.filterByConvexity = True
@@ -120,27 +121,30 @@ while cap.isOpened():
         #cv2.imshow("with frame", frame)
         #Mat cropedImage = fullImage(Rect(X,Y,Width,Height));
         #crop_img=cv2.copyMakeBorder(frame,a,d,c,b, cv2.BORDER_REPLICATE)
+        
         crop_img = frame[int(y-7):int(y+7),int(x-7):int(x+7)]
         crop_img = cv2.resize(crop_img, (30,30))
         cv2.imshow("crop_img", crop_img)
         # sharpening
         kernel = np.array([[-1,-1,-1],[-1, 9,-1],[-1,-1,-1]])
         sharpened = cv2.filter2D(crop_img, -1, kernel)        
-        cv2.imshow("sharpenned",sharpened)
-        # img blur
+        
+        # # img blur
         img = cv2.medianBlur(crop_img,3)
+        # img=cv2.addWeighted(img,1.5,img,-0.5,0)
         
         ret,bina = cv2.threshold(img,150,255,cv2.THRESH_BINARY)        
-        th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-        cv2.THRESH_BINARY,11,2)
-
-        print("pornees")
+        th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,9,1)
+        kern = np.ones((3,3),np.uint8)
+        th3 = cv2.erode(th3,kern,iterations = 1)
+        # th3 = cv2.dilate(th3,kern,iterations = 1)
+        th3 = cv2.morphologyEx(th3, cv2.MORPH_CLOSE, kern)
 
         cv2.imshow("binary", bina)
-        cv2.imshow("sharp", sharpened)
+        cv2.imshow("sharp", img)
         cv2.imshow("adaptive",th3)
         
-        image_rot(crop_img)
+        image_rot(th3)
 
         # text = pytesseract.image_to_string(crop_img)
         # #os.remove(filename)
