@@ -7,9 +7,6 @@ import matplotlib as plt
 import imutils
 
 
-
-
-
 def image_crop(c,frame):
 
 	rect = cv2.minAreaRect(c)
@@ -25,6 +22,7 @@ def image_crop(c,frame):
 	# cv2.polylines(frame, roi_corners, 1, (255, 0, 0), 3)
 	cropped_image = frame[ext_top[1]:ext_bot[1], ext_left[0]:ext_right[0]]
 	cv2.imshow('image', cropped_image)
+	return cropped_image
 
 	
 
@@ -48,23 +46,19 @@ def image_rot(img):
 def save_to_file(img):
     d+=1
     filename="/home/kiagkons/Documents/Eagles/Sdu_Eagles_Electronics/Detection/letters/im_%d.jpg"%d
-    cv2.imwrite(filename,sharpened)
+    cv2.imwrite(filename,img)
     print("done",d)
 
-def detect_test(img):
+def proc(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+
+def ocr(img):
     config = ('-l eng --oem 1 --psm 10')
     text = pytesseract.image_to_string(img, config=config)
     return text
 
 
-
-def crop(x,y,w,h,frame):
-	#crop_img = frame[int(y-100):int(y+100),int(x-100):int(x+100)]
-	crop_img=frame[y:y+h,x:x+w]
-
-	#crop_img = cv2.resize(crop_img, (50,50))
-	cv2.imshow("cropped",crop_img)
-	return crop_img
     	
 cam = cv2.VideoCapture('file4.mp4')
 # cam = cv2.VideoCapture(0)
@@ -109,8 +103,7 @@ while True:
 			keepDims = w >25 and h > 25
 			keepSolidity = solidity > 0.9
 			keepAspectRatio = aspectRatio >= 0.8 and aspectRatio <= 1.2
-			# print("aeraaaa",solidity)
- 
+			 
 			# ensure that the contour passes all our tests
 			
 			if keepDims and keepSolidity and keepAspectRatio:
@@ -119,7 +112,11 @@ while True:
 				cv2.drawContours(frame, [approx], -1, (0, 0, 255), 4)
 				status = "Target(s) Acquired"
 
-				image_crop(approx,frame)		
+				img_crop=image_crop(approx,frame)
+				text=ocr(img_crop)
+				print("text",text)
+
+
 
  
 				# compute the center of the contour region and draw the
@@ -130,18 +127,7 @@ while True:
 				# (startY, endY) = (int(cY - (h * 0.15)), int(cY + (h * 0.15)))
 				#cv2.line(frame, (startX, cY), (endX, cY), (0, 0, 255), 3)
 				#cv2.line(frame, (cX, startY), (cX, endY), (0, 0, 255), 3)
-				
-
-				
-			
-				#frame=crop(x,y,w,h,frame)
-				#cv2.imshow("Crop",frame)
-				# frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-				# text=detect_test(frame)
-				# print("text is ",text)
-				
-				#image_rot(frame)
-
+	
 					
 	# # draw the status text on the frame
 	# cv2.putText(frame, status, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
