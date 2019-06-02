@@ -8,7 +8,7 @@ import imutils
 
 
 def image_crop(c,frame):
-
+    
 	rect = cv2.minAreaRect(c)
 	box = cv2.boxPoints(rect)
 
@@ -24,24 +24,22 @@ def image_crop(c,frame):
 	cv2.imshow('image', cropped_image)
 	return cropped_image
 
-	
+
 
 
 def image_rot(img):
-    rows,cols=img.shape
-    i=0
-    angle=0
-    for angle in range (0,360,90):
-        M=cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
-        dst = cv2.warpAffine(img,M,(cols,rows))
-        text=detect_test(dst)
-        if (text == "G") :
-            exit()
-        cv2.imshow("rot",dst)
-        print("text",text)
-        #print("angle",angle)
+			
+		rows, cols = img.shape
+		i = 0
+		angle = 0
+		for angle in range(0, 360, 90):
+			M = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
+			dst = cv2.warpAffine(img, M, (cols, rows))			
+			text = ocr(dst)
+			cv2.imshow("rot", dst)
+			print("text", text)
+			# print("angle",angle)
 
-    
 
 def save_to_file(img):
     d+=1
@@ -50,13 +48,37 @@ def save_to_file(img):
     print("done",d)
 
 def proc(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    	
+    	
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		cv2.GaussianBlur(img,(3,3),0)
+
+		ret,bina = cv2.threshold(img,180,255,cv2.THRESH_BINARY_INV)        
+		th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,9,1)
+		kern = np.ones((5,5),np.uint8)
+		th3 = cv2.erode(th3,kern,iterations = 1)
+		# th3 = cv2.dilate(th3,kern,iterations = 1)
+		# th3 = cv2.morphologyEx(th3, cv2.MORPH_CLOSE, kern)
+		# text1=ocr(bina)
+		# text2=ocr(th3)
+		image_rot(bina)
+		# print("binia",text1)
+		# print("adaptive",text2)
+
+
+		cv2.imshow("binary", bina)
+		cv2.imshow("sharp", img)
+		cv2.imshow("adaptive",th3)
+		
+
 
 
 def ocr(img):
-    config = ('-l eng --oem 1 --psm 10')
-    text = pytesseract.image_to_string(img, config=config)
-    return text
+    	
+	#config = ('-l eng --oem 1 --psm 10')
+	text =pytesseract.image_to_string(img, config='-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ -psm 10')
+	#text = pytesseract.image_to_string(img, config=config)	
+	return text
 
 
     	
@@ -113,9 +135,8 @@ while True:
 				status = "Target(s) Acquired"
 
 				img_crop=image_crop(approx,frame)
-				text=ocr(img_crop)
-				print("text",text)
-
+				proc(img_crop)
+			
 
 
  
@@ -134,7 +155,7 @@ while True:
 	# 	(0, 0, 255), 2)
 	# # show the frame and record if a key is pressed
 	#cv2.imshow("Frame", frame)
-	key = cv2.waitKey(50) & 0xFF
+	key = cv2.waitKey(200) & 0xFF
  
 	# if the 'q' key is pressed, stop the loop
 	if key == ord("q"):
@@ -143,9 +164,3 @@ while True:
 # cleanup the camera and close any open windows
 cam.release()
 cv2.destroyAllWindows()
-
-
-
-
-
-
