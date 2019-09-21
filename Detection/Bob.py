@@ -46,18 +46,18 @@ def detect_test(img):
 
 width=640
 height=480
-cap = cv2.VideoCapture('file4.mp4')
+cap = cv2.VideoCapture('samplevideo.mp4')
 p=0
 print("1")
 # while True :
 while cap.isOpened():
-    ret, frame = cap.read()
+    ret, frame = cap.read(300)
     frame=cv2.resize(frame, (width, height), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
     #frame=cv2.resize(frame,(width,height))
     #image=frame.copy()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    cv2.imshow('frame',frame)
+    # cv2.imshow('frame',frame)
     #img= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     p=p+1
     print('frame no.',p)
@@ -97,7 +97,7 @@ while cap.isOpened():
 
     cv2.imshow("Keypoints", im_with_keypoints)
     print("frame no.=",p)
-    key = cv2.waitKey(25) & 0xFF
+    key = cv2.waitKey(75) & 0xFF
     if key == ord("q"):
         break
     d=0
@@ -124,7 +124,7 @@ while cap.isOpened():
         
         crop_img = frame[int(y-7):int(y+7),int(x-7):int(x+7)]
         crop_img = cv2.resize(crop_img, (30,30))
-        cv2.imshow("crop_img", crop_img)
+        # cv2.imshow("crop_img", crop_img)
         # sharpening
         kernel = np.array([[-1,-1,-1],[-1, 9,-1],[-1,-1,-1]])
         sharpened = cv2.filter2D(crop_img, -1, kernel)        
@@ -140,11 +140,11 @@ while cap.isOpened():
         # th3 = cv2.dilate(th3,kern,iterations = 1)
         th3 = cv2.morphologyEx(th3, cv2.MORPH_CLOSE, kern)
 
-        cv2.imshow("binary", bina)
-        cv2.imshow("sharp", img)
-        cv2.imshow("adaptive",th3)
+        # cv2.imshow("binary", bina)
+        # cv2.imshow("sharp", img)
+        # cv2.imshow("adaptive",th3)
         
-        image_rot(th3)
+        # image_rot(th3)
 
         # text = pytesseract.image_to_string(crop_img)
         # #os.remove(filename)
